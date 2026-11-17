@@ -2459,7 +2459,7 @@ const DATA = {
     {
      "t": "msg",
      "who": "them",
-     "text": "toto太聰明瞭，都瞞不住toto",
+     "text": "toto太聰明了，都瞞不住toto",
      "name": "toby"
     },
     {
@@ -4267,10 +4267,10 @@ const DATA = {
    ]
   ],
   "toto_after": [
-   "tomo去哪裡了？",
-   "toby說tomo的手機不見了",
-   "toto想tomo了，toto有好多故事要講呢",
-   "tomo回來了要回復toto哦"
+   "tomo去哪里了？",
+   "toby说tomo的手机不见了",
+   "toto想tomo了，toto有好多故事要讲呢",
+   "tomo回来了要回复toto哦"
   ],
   "reject_them1": "寶寶怎麼不接我電話？今天不是出去吃飯而已嗎？",
   "reject_mine": "这是我捡到的手机，我没看见机主，你能通知他吗？",
@@ -4837,6 +4837,12 @@ function rejectCall(){
 function noAnswer(){ $('#callview').classList.add('hidden'); rejectBranch(true); }
 /* 字幕说话人：清单里写「对方 / 我 / toto」，通话中对方即 Lin */
 const SPK={them:'Lin',me:'我',toto:'toto'};
+/* 字幕停留时长：基础 2.6s，再按字数加 3–5s（≤8 字加 3s，≥30 字加 5s，中间线性） */
+function subDelay(line){
+  const n=Array.from(line||'').length;
+  const extra=3000+Math.round(2000*Math.min(1,Math.max(0,(n-8)/22)));
+  return 2600+extra;
+}
 let inTimer=null, subTimer=null, subIdx=0;
 function incall(){
   $('#incall').classList.remove('hidden'); $('#homeInd').classList.remove('hidden');
@@ -4854,7 +4860,7 @@ function incall(){
     d.innerHTML='<span class="spk">'+esc(SPK[who]||'')+'</span>：'+esc(line);
     $('#subs').appendChild(d); requestAnimationFrame(()=>d.classList.add('on'));
     while($('#subs').children.length>3) $('#subs').removeChild($('#subs').firstChild);
-    subIdx++; subTimer=setTimeout(step,2600);
+    subIdx++; subTimer=setTimeout(step,subDelay(line));
   };
   setTimeout(step,600);
 }
