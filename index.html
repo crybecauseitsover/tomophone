@@ -4837,11 +4837,21 @@ function rejectCall(){
 function noAnswer(){ $('#callview').classList.add('hidden'); rejectBranch(true); }
 /* 字幕说话人：清单里写「对方 / 我 / toto」，通话中对方即 Lin */
 const SPK={them:'Lin',me:'我',toto:'toto'};
-/* 字幕停留时长：基础 2.6s，再按字数加 3–5s（≤8 字加 3s，≥30 字加 5s，中间线性） */
-function subDelay(line){
-  const n=Array.from(line||'').length;
-  const extra=3000+Math.round(2000*Math.min(1,Math.max(0,(n-8)/22)));
-  return 2600+extra;
+/* 字幕节奏：每句 2.6s + 按字数 1.8–2.8s（≤8 字 1.8s，≥30 字 2.8s，中间线性）；
+   再整体校准，使整通电话落在 35–40s（目标 37s），句子长短差异保留 */
+const SUB_OPEN=600, SUB_END=1800, SUB_LO=35000, SUB_HI=40000, SUB_TARGET=37000;
+function subPlan(subs){
+  const d=subs.map(([,line])=>{
+    const n=Array.from(line||'').length;
+    return 2600+1800+Math.round(1000*Math.min(1,Math.max(0,(n-8)/22)));
+  });
+  const sum=d.reduce((a,b)=>a+b,0);
+  const total=SUB_OPEN+sum+SUB_END;
+  if(sum>0&&(total<SUB_LO||total>SUB_HI)){
+    const k=(SUB_TARGET-SUB_OPEN-SUB_END)/sum;
+    return d.map(x=>Math.max(1600,Math.round(x*k)));
+  }
+  return d;
 }
 let inTimer=null, subTimer=null, subIdx=0;
 function incall(){
@@ -4851,18 +4861,18 @@ function incall(){
   const start=Date.now();
   inTimer=setInterval(()=>{ const s=Math.floor((Date.now()-start)/1000);
     $('#inTime').textContent=pad2(Math.floor(s/60))+':'+pad2(s%60); },500);
-  const subs=DATA.script.subtitles;
+  const subs=DATA.script.subtitles, plan=subPlan(subs);
   const step=()=>{
-    if(subIdx>=subs.length){ setTimeout(()=>{ if(S.stage===4) endCall(); },1800); return; }
-    const [who,line]=subs[subIdx];
+    if(subIdx>=subs.length){ setTimeout(()=>{ if(S.stage===4) endCall(); },SUB_END); return; }
+    const i=subIdx, [who,line]=subs[i];
     document.querySelectorAll('.subline').forEach(e=>{e.classList.remove('on');e.classList.add('dim');});
     const d=document.createElement('div'); d.className='subline';
     d.innerHTML='<span class="spk">'+esc(SPK[who]||'')+'</span>：'+esc(line);
     $('#subs').appendChild(d); requestAnimationFrame(()=>d.classList.add('on'));
     while($('#subs').children.length>3) $('#subs').removeChild($('#subs').firstChild);
-    subIdx++; subTimer=setTimeout(step,subDelay(line));
+    subIdx++; subTimer=setTimeout(step,plan[i]);
   };
-  setTimeout(step,600);
+  setTimeout(step,SUB_OPEN);
 }
 function hangup(){ endCall(); }
 function endCall(){
