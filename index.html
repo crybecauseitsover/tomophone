@@ -371,13 +371,18 @@ body{
   /* 状态栏 / 灵动岛由手机系统本身绘制，网页里不再重复画一条 */
   .statusbar,.island{display:none!important}
 
-  /* 各层为刘海与底部横条留出安全区（浏览器里 env() 为 0，与成品像素一致） */
+  /* 各层为刘海与底部横条留出安全区。
+     注意：桌面形态里网页自绘了一条 46px 状态栏；手机形态这 46px 由系统/浏览器承担，
+     所以顶部间距一律减掉 46，只保留 env() 安全区 + 原本的视觉间隙。
+     否则在 Safari/Chrome 里就会出现"浏览器工具栏 + 网页空 46px"的双层留白。 */
   .lock-top{padding-top:calc(88px + var(--sat))}
   .lock-bottom{padding-bottom:calc(34px + var(--sab))}
   #pass{padding:calc(70px + var(--sat)) 0 calc(30px + var(--sab))}
-  .home-inner{padding:calc(66px + var(--sat)) 20px 0}
+  .home-inner{padding:calc(20px + var(--sat)) 20px 0}
   .dock{margin-bottom:calc(26px + var(--sab))}
-  .app-head{padding-top:calc(46px + var(--sat));min-height:calc(98px + var(--sat))}
+  .app-head{padding-top:var(--sat);min-height:calc(52px + var(--sat))}
+  #callview{padding-top:calc(44px + var(--sat))}
+  #incall{padding-top:calc(34px + var(--sat))}
   .banner{top:calc(8px + var(--sat))}
   .toast{bottom:calc(80px + var(--sab))}
   .home-ind{bottom:calc(8px + var(--sab))}
@@ -385,7 +390,7 @@ body{
   #incall .hang{bottom:calc(70px + var(--sab))}
   #incall .subs{bottom:calc(150px + var(--sab))}
   .chatbar{padding-bottom:calc(26px + var(--sab))}
-  .viewer .vclose{top:calc(54px + var(--sat))}
+  .viewer .vclose{top:calc(8px + var(--sat))}
 }
 
 /* 横屏提示（只在手机横放时出现） */
